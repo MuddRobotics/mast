@@ -1,6 +1,0 @@
-/home/mast/Desktop/MAST/build/CMakeFiles/clean_test_results.dir
-/home/mast/Desktop/MAST/build/CMakeFiles/doxygen.dir
-/home/mast/Desktop/MAST/build/gtest/CMakeFiles/gtest.dir
-/home/mast/Desktop/MAST/build/gtest/CMakeFiles/gtest_main.dir
-/home/mast/Desktop/MAST/build/CMakeFiles/run_tests.dir
-/home/mast/Desktop/MAST/build/CMakeFiles/tests.dir
