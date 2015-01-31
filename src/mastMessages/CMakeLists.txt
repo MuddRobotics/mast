@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(controls)
+project(mastMessages)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -44,11 +45,13 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+   FILES
+   State.msg
+   Control.msg
+   Flight.msg
+   Position.msg
+ )
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -65,10 +68,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+generate_messages(
+   DEPENDENCIES
+   std_msgs
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -81,9 +84,10 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES controls
+#  LIBRARIES mastMessages
 #  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
+   CATKIN_DEPENDS message_runtime
 )
 
 ###########
@@ -98,19 +102,19 @@ include_directories(
 )
 
 ## Declare a cpp library
-# add_library(controls
-#   src/${PROJECT_NAME}/controls.cpp
+# add_library(mastMessages
+#   src/${PROJECT_NAME}/mastMessages.cpp
 # )
 
 ## Declare a cpp executable
-# add_executable(controls_node src/controls_node.cpp)
+# add_executable(mastMessages_node src/mastMessages_node.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(controls_node controls_generate_messages_cpp)
+# add_dependencies(mastMessages_node mastMessages_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(controls_node
+# target_link_libraries(mastMessages_node
 #   ${catkin_LIBRARIES}
 # )
 
@@ -123,13 +127,13 @@ include_directories(
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-install(PROGRAMS
-   scripts/controls.py
-   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
- )
+# install(PROGRAMS
+#   scripts/my_python_script
+#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS controls controls_node
+# install(TARGETS mastMessages mastMessages_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -154,7 +158,7 @@ install(PROGRAMS
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_controls.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_mastMessages.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

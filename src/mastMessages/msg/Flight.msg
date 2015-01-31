@@ -1,0 +1,3 @@
+float64 turning_radius
+float64 elevation_angle
+float64 airspeed

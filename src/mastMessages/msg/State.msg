@@ -1,0 +1,13 @@
+Header header
+float64 x
+float64 y
+float64 z
+float64 theta
+float64 phi
+float64 psi
+float64 xdot
+float64 ydot
+float64 zdot
+float64 thetadot
+float64 phidot
+float64 psidot
