@@ -26,7 +26,7 @@ kd = P.k_d_theta;
  % the loop
  u = sat(... % implement PID control
  kp * error +... % proportional term %  ki * integrator +... % integral term
- kd * q,... %  kd * differentiator,... % derivative term
+ kd * -q,... %  kd * differentiator,... % derivative term
  limit... % ensure abs(u)<=limit
  );
 
