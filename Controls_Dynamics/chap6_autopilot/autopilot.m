@@ -15,7 +15,7 @@ function y = autopilot(uu,P)
     h        = uu(3+NN);  % altitude
     Va       = uu(4+NN);  % airspeed
 %    alpha    = uu(5+NN);  % angle of attack
-%    beta     = uu(6+NN);  % side slip angle
+   beta     = uu(6+NN);  % side slip angle
     phi      = uu(7+NN);  % roll angle
     theta    = uu(8+NN);  % pitch angle
     chi      = uu(9+NN);  % course angle
@@ -36,7 +36,7 @@ function y = autopilot(uu,P)
     NN = NN+3;
     t        = uu(1+NN);   % time
     
-    [delta, x_command] = autopilot_uavbook(Va_c,h_c,chi_c,Va,h,chi,phi,theta,p,q,r,t,P);
+    [delta, x_command] = autopilot_uavbook(Va_c,h_c,chi_c,Va,h,chi,phi,theta,p,q,r,t,beta,P);
     y = [delta; x_command];
 end
     
@@ -51,7 +51,7 @@ end
 % autopilot_uavbook
 %   - autopilot defined in the uavbook
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [delta, x_command] = autopilot_uavbook(Va_c,h_c,chi_c,Va,h,chi,phi,theta,p,q,r,t,P)
+function [delta, x_command] = autopilot_uavbook(Va_c,h_c,chi_c,Va,h,chi,phi,theta,p,q,r,t,beta, P)
 
     %----------------------------------------------------------
     % lateral autopilot
@@ -62,14 +62,15 @@ function [delta, x_command] = autopilot_uavbook(Va_c,h_c,chi_c,Va,h,chi,phi,thet
         airspeed_with_pitch_hold(0,0,1,P);
         airspeed_with_throttle_hold(0,0,1,P);
         altitude_hold(0,0,1,P);
+        coordinated_turn_hold(0,0,P);
         
         % assume no rudder, therefore set delta_r=0
-        delta_r = 0;%coordinated_turn_hold(beta, 1, P);
+        delta_r = coordinated_turn_hold(beta, 1, P);
         phi_c   = course_hold(chi_c, chi, r, 1, P);
 
     else
         phi_c   = course_hold(chi_c, chi, r, 0, P);
-        delta_r = 0;%coordinated_turn_hold(beta, 0, P);
+        delta_r = coordinated_turn_hold(beta, 0, P);
     end
     delta_a = roll_hold(phi_c, phi, p,0, P);     
   

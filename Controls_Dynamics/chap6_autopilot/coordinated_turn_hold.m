@@ -17,7 +17,7 @@ persistent integrator;
  % update integrator
  error_d1 = error; % update the error for next time through
  % the loop
- u = sat(... % implement PID control
+ u = -sat(... % implement PID control
  kp * error +... % proportional term
  ki * integrator,... % integral term
  limit... % ensure abs(u)<=limit
