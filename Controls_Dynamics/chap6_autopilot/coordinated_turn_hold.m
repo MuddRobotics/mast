@@ -1,9 +1,9 @@
-function u = airspeed_with_pitch_hold(V2_c, V2, flag,P)
+function u = coordinated_turn_hold(beta, flag,P)
 Ts = P.Ts;
 % Tau = P.Tau;
-limit = 10*pi/180;
-ki = P.k_i_V2;
-kp = P.k_p_V2;
+limit = 35*pi/180;
+ki = P.k_i_beta;
+kp = P.k_p_beta;
 
 persistent integrator;
  persistent error_d1;
@@ -12,7 +12,7 @@ persistent integrator;
      integrator = 0;
      error_d1 = 0; % _d1 means delayed by one time step
  end
- error = V2_c - V2; % compute the current error
+ error = 0 - beta; % compute the current error
  integrator = integrator + (Ts/2)*(error + error_d1);
  % update integrator
  error_d1 = error; % update the error for next time through

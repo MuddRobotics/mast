@@ -27,7 +27,7 @@ persistent integrator;
  u = sat(... % implement PID control
  kp * error +... % proportional term
  ki * integrator +... % integral term
- kd * p,... %  kd * differentiator,... % derivative term
+ kd * -p,... %  kd * differentiator,... % derivative term
  limit... % ensure abs(u)<=limit
  );
  % implement integrator anti-windup

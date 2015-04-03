@@ -4,12 +4,12 @@
 % 
 % param_chap6
 
-simOn = 0;
+simOn = 1;
 
 %% Tune Roll Hold (Don't Change)
 
 delta_a_max = 45*pi/180;
-phi_max = 45*pi/180;
+phi_max = 15*pi/180;
 e_phi_max = phi_max;
 Va = 35; % m/s
 
@@ -124,7 +124,7 @@ end
 % Tuning Params
 
 W_h = 5;
-zeta_h = 0.7;
+zeta_h = 0.6;
 
 % Derived Params
 

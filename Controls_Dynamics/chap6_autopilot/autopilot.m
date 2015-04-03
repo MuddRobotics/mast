@@ -101,7 +101,7 @@ function [delta, x_command] = autopilot_uavbook(Va_c,h_c,chi_c,Va,h,chi,phi,thet
              theta_c = airspeed_with_pitch_hold(Va_c,Va,0,P);
         case 3, % descend zone
             delta_t = 0;
-            theta_c = airspeed_with_pitch_hold(Va_c,Va,-1,0,P);
+            theta_c = airspeed_with_pitch_hold(Va_c,Va,0,P);
         case 4, % altitude hold zone
             delta_t_trim = P.u_trim(4);
             delta_t = delta_t_trim + airspeed_with_throttle_hold(Va_c,Va,0,P);

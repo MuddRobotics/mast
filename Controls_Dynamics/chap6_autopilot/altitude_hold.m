@@ -1,7 +1,7 @@
 function u = altitude_hold(h_c, h, flag,P)
 Ts = P.Ts;
 % Tau = P.Tau;
-limit = 25*pi/180;
+limit = 10*pi/180;
 ki = P.k_i_h;
 kp = P.k_p_h;
 

@@ -115,7 +115,7 @@ P.sigma_w = .7;
 
 % compute trim conditions using 'mavsim_chap5_trim.slx'
 % initial airspeed
-P.Va0 = 10;
+P.Va0 = 35;
 gamma = 0*pi/180;  % desired flight path angle (radians)
 R     = Inf;         % desired radius (m) - use (+) for right handed orbit, 
 
@@ -183,8 +183,8 @@ P.r0     = 0;  % initial body frame yaw rate
 tuning;
 
 P.altitude_take_off_zone = 30;
-P.altitude_hold_zone = 100;
-P.theta_takeoff = 25*pi/180;
+P.altitude_hold_zone = 10;
+P.theta_takeoff = 10*pi/180;
 
 P.k_d_phi = k_d_phi;
 P.k_d_theta = k_d_theta;
