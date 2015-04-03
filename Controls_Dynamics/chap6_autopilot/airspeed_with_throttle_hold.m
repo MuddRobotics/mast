@@ -1,7 +1,8 @@
 function u = airspeed_with_throttle_hold(V_c, V, flag,P)
 Ts = P.Ts;
 % Tau = P.Tau;
-limit = 1;
+ulimit = 1;
+llimit = 0;
 ki = P.k_i_V;
 kp = P.k_p_V;
 
@@ -19,8 +20,8 @@ persistent integrator;
  % the loop
  u = sat(... % implement PID control
  kp * error +... % proportional term
- ki * integrator +... % integral term
- limit... % ensure abs(u)<=limit
+ ki * integrator,... % integral term
+ ulimit,llimit... % ensure abs(u)<=limit
  );
  % implement integrator anti-windup
  if ki~=0
@@ -28,9 +29,9 @@ persistent integrator;
      integrator = integrator + Ts/ki * (u - u_unsat);
  end
  
-    function out = sat(in, limit)
-         if in > limit, out = limit;
-         elseif in < -limit; out = -limit;
+    function out = sat(in, ulimit,llimit)
+         if in > ulimit, out = ulimit;
+         elseif in < -llimit; out = -llimit;
          else out = in;
          end
     end

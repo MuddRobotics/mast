@@ -167,6 +167,9 @@ P.r0     = x_trim(12);  % initial body frame yaw rate
 
 tuning;
 
+P.altitude_take_off_zone = 30;
+P.theta_takeoff = 25*pi/180;
+
 P.k_d_phi = k_d_phi;
 P.k_d_theta = k_d_theta;
 P.k_i_beta = k_i_beta;
@@ -174,6 +177,7 @@ P.k_i_chi = k_i_chi;
 P.k_i_V = k_i_V;
 P.k_i_V2 = k_i_V2;
 P.k_i_phi = k_i_phi;
+P.k_i_h = k_i_h;
 % P.k_i_theta = k_i_theta;
 P.k_p_beta = k_p_beta;
 P.k_p_chi = k_p_chi;

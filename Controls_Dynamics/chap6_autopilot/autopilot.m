@@ -110,7 +110,6 @@ function [delta, x_command] = autopilot_uavbook(Va_c,h_c,chi_c,Va,h,chi,phi,thet
     
     delta_e = pitch_hold(theta_c, theta, q, 0, P);
     % artificially saturation delta_t
-    delta_t = sat(delta_t,1,0);
  
     
     %----------------------------------------------------------

@@ -19,7 +19,7 @@ persistent integrator;
  % the loop
  u = sat(... % implement PID control
  kp * error +... % proportional term
- ki * integrator +... % integral term
+ ki * integrator,... % integral term
  limit... % ensure abs(u)<=limit
  );
  % implement integrator anti-windup
