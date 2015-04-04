@@ -6,7 +6,7 @@
 
 simOn = 0;
 
-%% Tune Roll Hold (Don't Change)
+%% Tune Roll Hold
 
 delta_a_max = 45*pi/180;
 phi_max = 45*pi/180;
@@ -18,8 +18,8 @@ a_phi_2 = (1/2)*P.rho * Va^2 * P.S_wing * P.b * P.C_p_delta_a;
 
 % Tuning Params
 
-zeta_phi = 0.75; % Tuning
-k_i_phi = 0.05; %(small)
+zeta_phi = 1.3;
+k_i_phi = 0.2;
 
 % Derived Params
 k_p_phi = delta_a_max/e_phi_max * sign(a_phi_2);
@@ -39,7 +39,7 @@ end
 
 % Tuning Params
 zeta_chi = 1.5;
-W_chi = 5;
+W_chi = 15.5;
 
 % Derived Params
 w_n_chi = w_n_phi / W_chi;

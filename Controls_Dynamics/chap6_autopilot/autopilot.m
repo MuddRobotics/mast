@@ -93,20 +93,24 @@ function [delta, x_command] = autopilot_uavbook(Va_c,h_c,chi_c,Va,h,chi,phi,thet
 
     
     % implement state machine
+    delta_t_trim = P.u_trim(4);
+    awp = airspeed_with_pitch_hold(Va_c,Va,0,P);
+    awt = delta_t_trim + airspeed_with_throttle_hold(Va_c,Va,0,P);
+    ah = altitude_hold(h_c,h,0,P);
     switch altitude_state,
+        
         case 1,  % in take-off zone
             delta_t = 1;
             theta_c = P.theta_takeoff;
         case 2,  % climb zone
              delta_t = 1;
-             theta_c = airspeed_with_pitch_hold(Va_c,Va,0,P);
+             theta_c = awp;
         case 3, % descend zone
             delta_t = 0;
-            theta_c = airspeed_with_pitch_hold(Va_c,Va,0,P);
+            theta_c = awp;
         case 4, % altitude hold zone
-            delta_t_trim = P.u_trim(4);
-            delta_t = delta_t_trim + airspeed_with_throttle_hold(Va_c,Va,0,P);
-            theta_c = altitude_hold(h_c,h,0,P);
+            delta_t = awt;
+            theta_c = ah;
     end
     
     delta_e = pitch_hold(theta_c, theta, q, 0, P);
