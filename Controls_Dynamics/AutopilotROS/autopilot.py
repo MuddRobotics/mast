@@ -74,9 +74,27 @@ class MASTautopilot:
         self.theta_takeoff = Params['theta_takeoff']
         self.delta_t_trim = Params['delta_t_trim']
 
+        self.process_inputs = {
+            "h": 0,
+            "Va": 0,
+            "beta": 0,
+            "phi": 0,
+            "theta": 0,
+            "chi": 0,
+            "p": 0,
+            "q": 0,
+            "r": 0,
+            "t": 0
+        }
 
-    def update(self,uu):
+        self.commanded = {
+            "Va": 0,
+            "h": 0,
+            "chi": 0
+        }
 
+    def update(self):
+        '''
         for i in range(0,len(uu)):
             uu[i] = float(uu[i])
 
@@ -107,6 +125,22 @@ class MASTautopilot:
         chi_c    = uu[3+NN]  # commanded course (rad)
         NN = NN+3
         t        = uu[1+NN]   # time
+        '''
+        h = self.process_inputs['h']
+        Va = self.process_inputs['Va']
+        beta = self.process_inputs['beta']
+        phi = self.process_inputs['phi']
+        theta = self.process_inputs['theta']
+        chi = self.process_inputs['chi']
+        p = self.process_inputs['p']
+        r = self.process_inputs['r']
+        q = self.process_inputs['q']
+        t = self.process_inputs['t']
+
+        h_c = self.commanded['h']
+        chi_c = self.commanded['chi']
+        Va_c = self.commanded['Va']
+
 
         # Lateral Autopilot
         phi_c   = self.course_hold.update(chi_c, chi)
@@ -146,8 +180,7 @@ class MASTautopilot:
         delta_e = self.pitch_hold.update(theta_c, theta, q)
 
         # Return control inputs
-        #return [float(delta_e), float(delta_a), float(delta_r), float(delta_t)]
-        return [0,0,0,0]
+        return [float(delta_e), float(delta_a), float(delta_r), float(delta_t)]
 
 
 
