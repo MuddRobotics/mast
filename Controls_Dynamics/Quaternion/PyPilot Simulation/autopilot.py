@@ -1,6 +1,9 @@
 __author__ = 'Kunal Menda, Peter Orme'
 
-from math import pi
+from math import *
+import transformations as tf
+import numpy as np
+import random
 
 
 class PIcontroller:
@@ -58,108 +61,128 @@ class PIDcontroller:
         return u
 
 
+class ErrorIntegrator:
+    """ integrator with Anti-Windup"""
+    def __init__(self, start_val, time):
+        self.value = start_val # the current value of the integrator
+        self.prev_error = start_val # the previous error measurement
+        self.prev_time = time # the last time we have a measurement for
+
+    def update(self, error, time):
+        Ts = time - self.prev_time
+        self.prev_time = time
+        self.value += Ts*1.0/2*(error+self.prev_error) # trapezoidal integration
+        return self.value
+
 class MASTautopilot:
-    def __init__(self, Params):
-        self.roll_hold = PIDcontroller(Params['k_p_phi'],Params['k_i_phi'],Params['k_d_phi'],pi/4,-pi/4,Params['Ts'])
-        self.course_hold = PIcontroller(Params['k_p_chi'],Params['k_i_chi'],25*pi/180,-25*pi/180,Params['Ts'])
-        self.coordinated_turn_hold = PIcontroller(-Params['k_p_beta'],-Params['k_i_beta'], \
-                                                  35*pi/180,-35*pi/180,Params['Ts']) # Note the negation on the gains.
-        self.pitch_hold = PIDcontroller(Params['k_p_theta'],0,Params['k_d_theta'],pi/4,-pi/4,Params['Ts'])
-        self.altitude_hold = PIcontroller(Params['k_p_h'],Params['k_i_h'],10*pi/180,-10*pi/180,Params['Ts'])
-        self.airspeed_with_pitch_hold = PIcontroller(Params['k_p_V2'],Params['k_i_V2'],10*pi/180,-10*pi/180,Params['Ts'])
-        self.airspeed_with_throttle_hold = PIcontroller(Params['k_p_V'],Params['k_i_V'],1,0,Params['Ts'])
-
-        self.altitude_take_off_zone = Params['altitude_take_off_zone']
-        self.altitude_hold_zone = Params['altitude_hold_zone']
-        self.theta_takeoff = Params['theta_takeoff']
-        self.delta_t_trim = Params['delta_t_trim']
-
+    def __init__(self):
+        self.vel_int = None 
+        self.z_int = None
 
     def update(self,uu):
-
-        for i in range(0,len(uu)):
-            uu[i] = float(uu[i])
-
+        uu = map(float, uu)
+        uu = np.array(uu, ndmin=2).transpose()
         # process inputs
-        NN = -1
-        #    pn       = uu[1+NN];  % inertial North position
-        #    pe       = uu[2+NN];  % inertial East position
-        h        = uu[3+NN]  # altitude
-        Va       = uu[4+NN]  # airspeed
-        #    alpha    = uu[5+NN];  % angle of attack
-        beta     = uu[6+NN]  # side slip angle
-        phi      = uu[7+NN]  # roll angle
-        theta    = uu[8+NN]  # pitch angle
-        chi      = uu[9+NN]  # course angle
-        p        = uu[10+NN] # body frame roll rate
-        q        = uu[11+NN] # body frame pitch rate
-        r        = uu[12+NN] # body frame yaw rate
-        #    Vg       = uu[13+NN]; % ground speed
-        #    wn       = uu[14+NN]; % wind North
-        #    we       = uu[15+NN]; % wind East
-        #    psi      = uu[16+NN]; % heading
-        #    bx       = uu[17+NN]; % x-gyro bias
-        #    by       = uu[18+NN]; % y-gyro bias
-        #    bz       = uu[19+NN]; % z-gyro bias
-        NN = NN+19
-        Va_c     = uu[1+NN]  # commanded airspeed (m/s)
-        h_c      = uu[2+NN]  # commanded altitude (m)
-        chi_c    = uu[3+NN]  # commanded course (rad)
-        NN = NN+3
-        t        = uu[1+NN]   # time
+        q_a      = uu[:4]        # Measured quaternion attitude
+        w_B_a    = uu[4:7]       # Measured angular rates in body frame
+        v_I_a    = uu[7:10]      # Measured velocity in inertial frame
+        p_a      = uu[10:13]     # Measured position in intertial frame
+        v_B_a    = uu[13:16]     # Measured velocity in body frame
+        q_ref_d  = uu[16:20]     # Commanded reference quaternion
+        v_I_d    = uu[20:23]     # Commanded velocity in inertial frame
+        z_I_d    = uu[23]        # Commanded altitude
+        t        = uu[-1]        # time
 
-        # Lateral Autopilot
-        phi_c   = self.course_hold.update(chi_c, chi)
-        delta_r = self.coordinated_turn_hold.update(0, beta)
-        delta_a = self.roll_hold.update(phi_c, phi, p)
+        # Assign constants
+        m = 2 # kg
+        g = 9.81 # m/s^2
 
-        # Longitudinal Autopilot
 
-        if h <= self.altitude_take_off_zone:
-            altitude_state = 1
-        elif h <= h_c-self.altitude_hold_zone:
-            altitude_state = 2
-        elif h >= h_c+self.altitude_hold_zone:
-            altitude_state = 3
+        # PI velocity control
+        # Gains (wtf are the values tho)
+        K_p_yvel = 0.2
+        K_i_yvel = 0.2
+
+        K_p_xvel = 0.2
+        K_i_xvel = 0.2
+
+        K_p_z = 0.2
+        K_v_z = 0.2
+
+        v_I_e = v_I_d - v_I_a
+        if self.vel_int is None:
+            self.vel_int = ErrorIntegrator(v_I_e,t)
         else:
-            altitude_state = 4
+            self.vel_int.update(v_I_e,t)
 
-        delta_t_trim = self.delta_t_trim  # there should be a better way
+        int_v_I_e = self.vel_int.value
 
-        awp = self.airspeed_with_pitch_hold.update(Va_c, Va)
-        awt = delta_t_trim + self.airspeed_with_throttle_hold.update(Va_c, Va)
-        ah = self.altitude_hold.update(h_c, h)
+        z_I_e = z_I_d - p_a[2]
+        if self.z_int is None:
+            self.z_int = ErrorIntegrator(z_I_e,t)
+        else:
+            self.z_int.update(z_I_e,t)
+        int_z_I_e = self.z_int.value
 
-        if altitude_state == 1:  # take off zone
-            delta_t = 1
-            theta_c = self.theta_takeoff
-        elif altitude_state == 2:  # climb zone
-            delta_t = 1
-            theta_c = awp
-        elif altitude_state == 3:  # descend zone
-            delta_t = 0
-            theta_c = awp
-        elif altitude_state == 4:  # altitude hold zone
-            delta_t = awt
-            theta_c = ah
+        q_xy = np.array([[1.], 
+                K_p_yvel * v_I_e[1] + K_i_yvel * int_v_I_e[1] +
+                 K_p_z * np.sign(v_I_a[1])*z_I_e + K_v_z * np.sign(v_I_a[1]) * v_I_d[2],
+                K_p_xvel * v_I_e[0] + K_i_xvel * int_v_I_e[0] +
+                 K_p_z * np.sign(v_I_a[0])*z_I_e + K_v_z * np.sign(v_I_a[0]) * v_I_d[2],
+                [0.]])
 
-        delta_e = self.pitch_hold.update(theta_c, theta, q)
+        q_d = tf.quaternion_multiply(q_ref_d.flatten(), q_xy.flatten())
+        q_d = np.array(q_d, ndmin=2).transpose()
 
-        # Return control inputs
-        #return [float(delta_e), float(delta_a), float(delta_r), float(delta_t)]
-        return [0,0,0,0]
+
+
+        # PD attitude control
+        # Gains
+        K_p_d_a = 1.4
+        K_d_d_a = 0.2
+
+        K_p_d_e = 2.0
+        K_d_d_e = 0.25
+
+        K_p_d_r = 1.7
+        K_d_d_r = 0.1
+
+        q_e = tf.quaternion_multiply(q_d.flatten(), tf.quaternion_conjugate(q_a.flatten()))
+        q_e = np.array(q_e, ndmin=2).transpose()
+        gamma_rotation = 2*cos(q_e[0])
+        axis_vector = 1/(sin(gamma_rotation/2)) * q_e[1:]
+        euler_errors = gamma_rotation*axis_vector
+        K_p_euler = np.array([[K_p_d_a, 0., 0.], [0., K_p_d_e, 0.], [0., 0., K_p_d_r]])
+        K_d_euler = np.array([[K_d_d_a, 0., 0.], [0., K_d_d_e, 0.], [0., 0., K_d_d_r]])
+        u_w = np.dot(K_p_euler, euler_errors) + np.dot(K_d_euler, w_B_a) 
+
+
+        # PID Thrust control
+        # Gains
+        K_p_d_t = 0.8 
+        K_i_d_t = 0.2
+        K_d_d_t = 0.33
+
+        q_e_nominal = tf.quaternion_multiply(np.array([1,0,0,0]), tf.quaternion_conjugate(q_a.flatten()))
+        gamma_rotation_nominal = 2*cos(q_e_nominal[0])
+        axis_vector_nominal = 1/(sin(gamma_rotation_nominal/2)) * q_e_nominal[1:]
+        euler_errors_nominal = gamma_rotation_nominal*axis_vector_nominal       
+        if euler_errors_nominal[1] > 30*pi/180:
+            Delta_v_B_x = v_I_e[1] / sin(euler_errors_nominal[1])
+            delta_t = K_p_d_t * z_I_e + K_i_d_t * int_z_I_e - K_d_d_t * v_I_e[2] + K_v_x * Delta_v_B_x
+        else:
+            delta_t = m*g/cos(euler_errors_nominal[1]) + K_p_d_t * z_I_e + K_i_d_t * int_z_I_e - K_d_d_t * v_I_e[2]
+
+        return np.append(u_w, [delta_t]) 
+
+
+
 
 
 
 
 def makeAutopilot():
-    Params = dict()
-    import csv
-    with open('ParamsForPyAutopilot.csv', 'rb') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',', quotechar='|')
-        for row in reader:
-            Params[row[0]] = float(row[1])
-        return MASTautopilot(Params)
+    return MASTautopilot()
 
 
 
@@ -172,40 +195,15 @@ def makeAutopilot():
 
 
 def main():
-    import csv
+    CaptainAppi = MASTautopilot()
+    for i in range(100):
+        inps = [random.random() for i in range(24)]
+        print CaptainAppi.update(inps)
 
+        # TODO 
+        # Implement saturation
+        # Implement anti windup
 
-    Params = dict()
-
-    with open('ParamsForPyAutopilot.csv', 'rb') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',', quotechar='|')
-        for row in reader:
-            Params[row[0]] = float(row[1])
-
-    Inputs = []
-    Outputs = []
-    with open('PyTestInputs.csv', 'rb') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',', quotechar='|')
-        for row in reader:
-            myrow = [float(r) for r in row]
-            Inputs.append(myrow)
-    with open('PyTestOutputs.csv', 'rb') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',', quotechar='|')
-        for row in reader:
-            myrow = [float(r) for r in row]
-            Outputs.append(myrow[1:5])
-
-
-    MyAutopilot = MASTautopilot(Params)
-
-    SimOutputs = []
-    for row in Inputs[0:10]:
-        print 'Inputs: ',row
-        SimOutputs.append(MyAutopilot.update(row[1:]))
-
-    for i in range(0, len(SimOutputs)):
-        print [100*(a_i - b_i)/(b_i+0.00000001) for a_i, b_i in zip(SimOutputs[i], Outputs[i])]
-        # print [a_i*180/pi for a_i in SimOutputs[i][:-1]].append(SimOutputs[i][-1])
 
 
 

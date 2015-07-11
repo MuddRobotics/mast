@@ -77,36 +77,15 @@ class MASTautopilot:
 
     def update(self,uu):
 
-        for i in range(0,len(uu)):
-            uu[i] = float(uu[i])
+        uu = map(float, uu)
 
         # process inputs
-        NN = -1
-        #    pn       = uu[1+NN];  % inertial North position
-        #    pe       = uu[2+NN];  % inertial East position
-        h        = uu[3+NN]  # altitude
-        Va       = uu[4+NN]  # airspeed
-        #    alpha    = uu[5+NN];  % angle of attack
-        beta     = uu[6+NN]  # side slip angle
-        phi      = uu[7+NN]  # roll angle
-        theta    = uu[8+NN]  # pitch angle
-        chi      = uu[9+NN]  # course angle
-        p        = uu[10+NN] # body frame roll rate
-        q        = uu[11+NN] # body frame pitch rate
-        r        = uu[12+NN] # body frame yaw rate
-        #    Vg       = uu[13+NN]; % ground speed
-        #    wn       = uu[14+NN]; % wind North
-        #    we       = uu[15+NN]; % wind East
-        #    psi      = uu[16+NN]; % heading
-        #    bx       = uu[17+NN]; % x-gyro bias
-        #    by       = uu[18+NN]; % y-gyro bias
-        #    bz       = uu[19+NN]; % z-gyro bias
-        NN = NN+19
-        Va_c     = uu[1+NN]  # commanded airspeed (m/s)
-        h_c      = uu[2+NN]  # commanded altitude (m)
-        chi_c    = uu[3+NN]  # commanded course (rad)
-        NN = NN+3
-        t        = uu[1+NN]   # time
+        q_a      = uu[:4]    # Measured quaternion attitude
+        w_B_a    = uu[4:7]   # Measured angular rates in body frame
+        v_I_a    = uu[7:10]  # Measured velocity in inertial frame
+        p_a      = uu[10:13] # Measured position in intertial frame
+        v_B_a    = uu[13:16] # Measured velocity in body frame
+        t        = uu[16]    # time
 
         # Lateral Autopilot
         phi_c   = self.course_hold.update(chi_c, chi)
