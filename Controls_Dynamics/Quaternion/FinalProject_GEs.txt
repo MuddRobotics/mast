@@ -1,0 +1,81 @@
+NewtonianFrame N
+RigidBody A, B
+RigidFrame C
+Variable qa'', qb'', qc'', Hprop''
+Constant La, Lb, LBcm, Lf
+Constant ma, mb, g, Fa
+Constant I1, I2, I3, I4, I5, I6, I7, I8, I9
+Point  Po, Fo
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 	Set up rotation matrices with variable q values
+
+A.RotateZ(N,qa)
+B.RotateX(A,qb)
+C.RotateY(B,qc)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 	Define the position vectors along the arm lengths
+
+p_No_Ao> = 0*Ny>
+p_Ao_Bo> = La*Ay>
+p_Bo_Po> = Lb*By>
+p_Po_Fo> = Lf*Bz>
+
+p_Acm_Ao> = 0*Ay>
+p_Bo_Bcm> = Lbcm*By>
+
+v_Acm_N> = Dt(p_No_Acm>,N)
+v_Bcm_N> = Dt(p_No_Bcm>,N)
+v_Dcm_N> = Dt(p_No_Dcm>,N)
+v_Ao_N> = Dt(p_No_Ao>,N)
+v_Bo_N> = Dt(p_No_Bo>,N)
+v_Po_N> = Dt(p_No_Po>,N)
+v_Fo_N> = Dt(p_No_Fo>,N)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 	Develop mass and inertial properties
+
+A.SetMass(ma)    % wheel and block
+B.SetMass(mb)    % block and wing
+
+Ia>> = A.SetInertia(Acm, I1, I2, I3)  % xy, yz, xz 
+Ib>> = B.SetInertia(Bcm, I4, I5, I6)
+Id>> = D.SetInertia(Dcm, I7, I8, I9)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 	Calculate Angular Momentum
+
+
+H_N_A_No> = Dot(Ia>>,w_A_N>) + Cross(p_No_Acm>,ma*v_Acm_N>)
+H_N_B_No> = Dot(Ib>>,w_B_N>) + Cross(p_No_Bcm>,mb*v_Bcm_N>)
+H_N_P_No> = Hprop*Bz>
+
+H_N_B_Bo> = Dot(Ib>>,w_B_N>) + Cross(p_Bo_Bcm>,mb*v_Bcm_N>)
+H_N_P_Bo> = Hprop*Bz>
+
+dHa_n> = Dt(H_N_A_No>,N) 
+dHb_n> = Dt(H_N_B_No>,N)
+dHp_n> = Dt(H_N_P_No>,N)
+dHb_b> = Dt(H_N_B_Bo>,N) + mb*Cross(v_Bo_N>,Dt(p_Bo_Bcm>,N))
+dHp_b> = Dt(H_N_P_Bo>,N) 
+
+Fa*Hprop^2
+
+% different expressions for the angular momentum about 
+% each point up the chain, Ao, Bo, Co, Do, Eo
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 	Derive governing equations with angular momentum principle
+
+Zero1> = dHa_n> + dHb_n> + dHp_n> - ( Cross(p_No_Bcm>,-mb*g*Bz>) + Cross(p_No_Fo>,Fa*Hprop^2*Cz>))
+Zero2> = dHb_b> +dHp_b> - ( Cross(p_Bo_Bcm>,-mb*g*Bz>) + Cross(p_Bo_Fo>,Fa*Hprop^2*Cz>))
+
+
+Eq[1] = Dot(Zero1>,Ny>)
+Eq[2] = Dot(Zero2>,Ny>)
+
+
+
+Solve(Eq, qa'', qb'')
+
